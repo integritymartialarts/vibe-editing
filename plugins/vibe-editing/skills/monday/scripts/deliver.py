@@ -2,12 +2,18 @@
 import argparse
 import concurrent.futures
 import datetime
-import fcntl
 import json
 import re
+import sys
 import time
 import urllib.request
 from pathlib import Path
+
+try:
+    import fcntl
+except ImportError:  # Windows
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+    from vibe_winlock import fcntl
 
 from delivery_ledger import Ledger, atomic_json, fingerprint
 from frameio_client import FrameClient, UA

@@ -7,7 +7,6 @@ from __future__ import annotations
 import os
 import json
 import hashlib
-import fcntl
 import re
 import subprocess
 import tempfile
@@ -16,6 +15,10 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+try:
+    import fcntl
+except ImportError:  # Windows
+    from vibe_winlock import fcntl
 from onboard import private_json
 from vibe_credentials import load_keys
 load_keys()

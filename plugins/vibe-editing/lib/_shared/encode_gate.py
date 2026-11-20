@@ -24,18 +24,26 @@ Use it as a context manager around ffmpeg calls:
 
 Inside parallel.run_commands(kind="encode") it's already wired — most skills get it free.
 """
-import fcntl
 import os
+import sys
+import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
+
+try:
+    import fcntl
+except ImportError:  # Windows
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from vibe_winlock import fcntl
 
 # How many concurrent hardware encodes the machine tolerates well.
 # M3 Max has 2 media engines; 3 = both pinned + 1 ready to swap in.
 SLOTS = int(os.environ.get("VIBE_ENCODE_SLOTS", "3"))
 
 # Lock dir lives in /tmp so it's automatically cleaned on reboot and writable by every user.
-SLOT_DIR = Path(os.environ.get("VIBE_ENCODE_SLOT_DIR", "/tmp/acq_encode_slots"))
+_DEFAULT_SLOT_DIR = "/tmp/acq_encode_slots" if os.name != "nt" else os.path.join(tempfile.gettempdir(), "acq_encode_slots")
+SLOT_DIR = Path(os.environ.get("VIBE_ENCODE_SLOT_DIR", _DEFAULT_SLOT_DIR))
 
 
 def _ensure_slots():
